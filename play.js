@@ -22,6 +22,7 @@ let Gameboard = (() => {
 let GameController = (() => {
 
 	let isPlayerOneTurn = true;
+	let isGameOver = false;
 
 	let initGame = () => {
 
@@ -34,7 +35,7 @@ let GameController = (() => {
 
 		let index = tilePressed.getAttribute("id");
 
-		if(Gameboard.gameArr[index].mark == '')
+		if(Gameboard.gameArr[index].mark == '' && (!isGameOver))
 		{
 			if (isPlayerOneTurn)
 			{
@@ -46,7 +47,8 @@ let GameController = (() => {
 			}
 
 			isPlayerOneTurn = !isPlayerOneTurn;
-			DOMController.updateDOM(tilePressed); 
+			DOMController.updateBoard(tilePressed);
+			checkforWinner(); 
 		}
 	};
 
@@ -56,17 +58,72 @@ let GameController = (() => {
 	};
 
 	let clearBoard = () => {
-		
+
+		for (let i=0;i<Gameboard.gameArr.length;i++)
+		{
+			Gameboard.gameArr[i].mark = '';
+		}
+		DOMController.clearBoard();
+		let play_again_btn = document.querySelector("#play-again");
+		play_again_btn.style.display = "none";
+		isGameOver = false;
+
 	};
 
-	let signalWinner = () => {
+	let checkforWinner = () => {
+	
 
+		let won = function()
+		{
+
+			let play_again_btn = document.querySelector("#play-again");
+			play_again_btn.addEventListener("click",clearBoard);
+			play_again_btn.style.display ="block";
+			isGameOver = true;
+		};
+
+		if((Gameboard.gameArr[0].mark === Gameboard.gameArr[1].mark) && (Gameboard.gameArr[1].mark === Gameboard.gameArr[2].mark) && (Gameboard.gameArr[2].mark) !== '')
+		{
+			won();
+		}
+		else if((Gameboard.gameArr[0].mark === Gameboard.gameArr[3].mark) && (Gameboard.gameArr[3].mark === Gameboard.gameArr[6].mark)&& (Gameboard.gameArr[6].mark) !== '')
+		{
+			won();
+		}
+		else if((Gameboard.gameArr[0].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
+		{
+			won();
+		}
+
+		else if((Gameboard.gameArr[3].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[5].mark)&& (Gameboard.gameArr[5].mark) !== '')
+		{
+			won();
+		}
+
+		else if((Gameboard.gameArr[1].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[7].mark)&& (Gameboard.gameArr[7].mark) !== '')
+		{
+			won();
+		}
+		else if((Gameboard.gameArr[2].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[6].mark)&& (Gameboard.gameArr[6].mark) !== '')
+		{
+			won();
+		}
+		else if((Gameboard.gameArr[6].mark === Gameboard.gameArr[7].mark) && (Gameboard.gameArr[7].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
+		{
+			won();
+		}
+		else if((Gameboard.gameArr[2].mark === Gameboard.gameArr[5].mark) && (Gameboard.gameArr[5].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
+		{
+			won();
+		}
 	};	
 
 	return {
 		initGame,
 		updategameArr,
 		getPlayerTurn,
+		clearBoard,
+		checkforWinner,
 	};
 })();
 
@@ -96,10 +153,10 @@ let DOMController = (() => {
 		});
 	};
 
-	let updateDOM = (tilePressed) => {
+	let updateBoard = (tilePressed) => {
 		
 		let img = document.createElement('img');
-		console.log(tilePressed);
+
 		if (GameController.getPlayerTurn())
 		{
 			img.src="assets/o.png";
@@ -112,14 +169,22 @@ let DOMController = (() => {
 		}
 	};
 
-	let getTiles = () => 
-	{
-		return tile_nodelist;
+	let clearBoard = () => {
+		tile_nodelist.forEach(node=>{
+			if(node.childNodes[0] != null)
+			{
+				node.removeChild(node.childNodes[0]);
+			}
+		});
+	};
+
+	let signalWinner = () => {
+
 	};
 
 	return {
 		
-		renderBoard,getTiles,updateDOM
+		renderBoard,updateBoard, clearBoard
 
 	};
 })();
