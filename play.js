@@ -21,6 +21,23 @@ let Gameboard = (() => {
 
 let GameController = (() => {
 
+	const winConditions = [
+			[0,1,2],
+			[3,4,5],
+			[6,7,8],
+			[0,3,6],
+			[1,4,7],
+			[2,5,8],
+			[0,4,8],
+			[2,4,6]
+		];
+
+	let storeMoves = {
+
+		player1 : [0,0,0,0,0,0,0,0],
+		player2 : [0,0,0,0,0,0,0,0]
+	}
+
 	let isPlayerOneTurn = true;
 	let isGameOver = false;
 
@@ -46,9 +63,9 @@ let GameController = (() => {
 				Gameboard.gameArr[index].mark = "o";
 			}
 
-			isPlayerOneTurn = !isPlayerOneTurn;
 			DOMController.updateBoard(tilePressed);
-			checkforWinner(); 
+			checkforWinner(isPlayerOneTurn,index); 
+			isPlayerOneTurn = !isPlayerOneTurn;
 		}
 	};
 
@@ -67,55 +84,65 @@ let GameController = (() => {
 		let play_again_btn = document.querySelector("#play-again");
 		play_again_btn.style.display = "none";
 		isGameOver = false;
+		isPlayerOneTurn = true;
 
 	};
 
-	let checkforWinner = () => {
-	
+	let checkforWinner = (isPlayerOneTurn, index) => {
 
-		let won = function()
+		let won = function(winningMark)
 		{
 
 			let play_again_btn = document.querySelector("#play-again");
 			play_again_btn.addEventListener("click",clearBoard);
 			play_again_btn.style.display ="block";
+			
 			isGameOver = true;
+
+			storeMoves.player1=[0,0,0,0,0,0,0,0];
+			storeMoves.player2=[0,0,0,0,0,0,0,0];
+
+			DOMController.signalWinner(winningMark);
 		};
 
-		if((Gameboard.gameArr[0].mark === Gameboard.gameArr[1].mark) && (Gameboard.gameArr[1].mark === Gameboard.gameArr[2].mark) && (Gameboard.gameArr[2].mark) !== '')
+		let tile_num = parseInt(index);
+
+		if(isPlayerOneTurn)
 		{
-			won();
+			for (let i=0;i<winConditions.length;i++)
+			{
+
+				if(winConditions[i].includes(tile_num))
+				{
+					storeMoves.player1[i] += 1;
+					
+
+					if(storeMoves.player1[i]==3)
+					{
+						won(Gameboard.gameArr[index].mark);
+						break;
+						
+					}
+				}
+			}
 		}
-		else if((Gameboard.gameArr[0].mark === Gameboard.gameArr[3].mark) && (Gameboard.gameArr[3].mark === Gameboard.gameArr[6].mark)&& (Gameboard.gameArr[6].mark) !== '')
+		else
 		{
-			won();
-		}
-		else if((Gameboard.gameArr[0].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
-		{
-			won();
+			for (let i=0;i<winConditions.length;i++)
+			{
+				if(winConditions[i].includes(tile_num))
+				{
+					storeMoves.player2[i] += 1;
+					
+					if(storeMoves.player2[i]==3)
+					{
+						won(Gameboard.gameArr[index].mark);
+						break;
+					}
+				}
+			}
 		}
 
-		else if((Gameboard.gameArr[3].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[5].mark)&& (Gameboard.gameArr[5].mark) !== '')
-		{
-			won();
-		}
-
-		else if((Gameboard.gameArr[1].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[7].mark)&& (Gameboard.gameArr[7].mark) !== '')
-		{
-			won();
-		}
-		else if((Gameboard.gameArr[2].mark === Gameboard.gameArr[4].mark) && (Gameboard.gameArr[4].mark === Gameboard.gameArr[6].mark)&& (Gameboard.gameArr[6].mark) !== '')
-		{
-			won();
-		}
-		else if((Gameboard.gameArr[6].mark === Gameboard.gameArr[7].mark) && (Gameboard.gameArr[7].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
-		{
-			won();
-		}
-		else if((Gameboard.gameArr[2].mark === Gameboard.gameArr[5].mark) && (Gameboard.gameArr[5].mark === Gameboard.gameArr[8].mark)&& (Gameboard.gameArr[8].mark) !== '')
-		{
-			won();
-		}
 	};	
 
 	return {
@@ -124,16 +151,18 @@ let GameController = (() => {
 		getPlayerTurn,
 		clearBoard,
 		checkforWinner,
+		storeMoves
 	};
 })();
 
 let DOMController = (() => {
 
 	let tile_nodelist;
+	let grid_container;
 
 	let renderBoard = () => 
 	{
-		let grid_container = document.querySelector("#grid-container");
+		grid_container = document.querySelector("#grid-container");
 
 		for (let i=0; i<Gameboard.gameArr.length; i++)
 		{
@@ -159,12 +188,12 @@ let DOMController = (() => {
 
 		if (GameController.getPlayerTurn())
 		{
-			img.src="assets/o.png";
+			img.src="assets/x.png";
 			tilePressed.appendChild(img);
 		}
 		else
 		{
-			img.src="assets/x.png";
+			img.src="assets/o.png";
 			tilePressed.appendChild(img);
 		}
 	};
@@ -176,15 +205,38 @@ let DOMController = (() => {
 				node.removeChild(node.childNodes[0]);
 			}
 		});
+
+		let winnerHTMLRow = document.querySelector("#flex-row-2");
+		if(winnerHTMLRow.childNodes[0] != null)
+		{
+			winnerHTMLRow.removeChild(winnerHTMLRow.childNodes[0]);
+		}
 	};
 
-	let signalWinner = () => {
+	let signalWinner = (winningMark) => {
+
+		let winnerHTML = document.createElement("div");
+		let winnerContent;
+
+		if(winningMark=="x")
+		{
+			winnerContent = document.createTextNode("Player 1 Wins!");
+		}
+		else
+		{
+			winnerContent = document.createTextNode("Player 2 Wins!");
+		}
+
+		winnerHTML.appendChild(winnerContent)
+		let winnerHTMLRow = document.querySelector("#flex-row-2");
+		winnerHTMLRow.appendChild(winnerHTML,winnerHTMLRow);
+		
 
 	};
 
 	return {
 		
-		renderBoard,updateBoard, clearBoard
+		renderBoard,updateBoard, clearBoard,signalWinner
 
 	};
 })();
