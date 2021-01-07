@@ -5,15 +5,15 @@ let Gameboard = (() => {
 	};
 
 	let gameArr = new Array();
+	let tilesPlaced = 0;
 
 	for(let i = 0;i<9;i++)
 	{
-		//clone Tile objects into Array
 		gameArr.push(JSON.parse(JSON.stringify(Tile)));
 	}
 
 	return {
-		gameArr,
+		gameArr,tilesPlaced
 	};
 
 })();
@@ -63,6 +63,7 @@ let GameController = (() => {
 				Gameboard.gameArr[index].mark = "o";
 			}
 
+			Gameboard.tilesPlaced += 1;
 			DOMController.updateBoard(tilePressed);
 			checkforWinner(isPlayerOneTurn,index); 
 			isPlayerOneTurn = !isPlayerOneTurn;
@@ -98,11 +99,28 @@ let GameController = (() => {
 			play_again_btn.style.display ="block";
 			
 			isGameOver = true;
+			Gameboard.tilesPlaced = 0;
 
 			storeMoves.player1=[0,0,0,0,0,0,0,0];
 			storeMoves.player2=[0,0,0,0,0,0,0,0];
 
 			DOMController.signalWinner(winningMark);
+		};
+
+		let tie = function()
+		{
+
+			let play_again_btn = document.querySelector("#play-again");
+			play_again_btn.addEventListener("click",clearBoard);
+			play_again_btn.style.display ="block";
+			
+			isGameOver = true;
+			Gameboard.tilesPlaced = 0;
+
+			storeMoves.player1=[0,0,0,0,0,0,0,0];
+			storeMoves.player2=[0,0,0,0,0,0,0,0];
+
+			DOMController.signalTie();
 		};
 
 		let tile_num = parseInt(index);
@@ -141,6 +159,11 @@ let GameController = (() => {
 					}
 				}
 			}
+		}
+		//account for ties
+		if(!isGameOver && Gameboard.tilesPlaced == 9)
+		{
+			tie();
 		}
 
 	};	
@@ -228,15 +251,31 @@ let DOMController = (() => {
 		}
 
 		winnerHTML.appendChild(winnerContent)
-		let winnerHTMLRow = document.querySelector("#flex-row-2");
-		winnerHTMLRow.appendChild(winnerHTML,winnerHTMLRow);
+		let htmlRow = document.querySelector("#flex-row-2");
+		htmlRow.appendChild(winnerHTML,htmlRow);
+		
+
+	};
+
+	let signalTie = () => {
+
+		let tieHTML = document.createElement("div");
+		let tieContent;
+
+	
+		tieContent = document.createTextNode("It's a Tie!");
+		
+
+		tieHTML.appendChild(tieContent)
+		let htmlRow = document.querySelector("#flex-row-2");
+		htmlRow.appendChild(tieHTML,htmlRow);
 		
 
 	};
 
 	return {
 		
-		renderBoard,updateBoard, clearBoard,signalWinner
+		renderBoard,updateBoard, clearBoard,signalWinner, signalTie
 
 	};
 })();
