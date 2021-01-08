@@ -18,6 +18,13 @@ let Gameboard = (() => {
 
 })();
 
+let minimax = ((node, depth, maximizingPLayer) => {
+	if(depth == 0 || node)
+	{
+
+	}
+});
+
 
 let GameController = (() => {
 
@@ -32,7 +39,7 @@ let GameController = (() => {
 			[2,4,6]
 		];
 
-	let storeMoves = {
+	let checkWinConditions = {
 
 		player1 : [0,0,0,0,0,0,0,0],
 		player2 : [0,0,0,0,0,0,0,0]
@@ -44,7 +51,7 @@ let GameController = (() => {
 	let initGame = () => {
 
 		//grab player options (human vs ai)
-		DOMController.renderBoard();
+		DOMController.renderDOMBoard();
 		
 	};
 
@@ -64,7 +71,7 @@ let GameController = (() => {
 			}
 
 			Gameboard.tilesPlaced += 1;
-			DOMController.updateBoard(tilePressed);
+			DOMController.updateDOMBoard(tilePressed);
 			checkforWinner(isPlayerOneTurn,index); 
 			isPlayerOneTurn = !isPlayerOneTurn;
 		}
@@ -81,7 +88,7 @@ let GameController = (() => {
 		{
 			Gameboard.gameArr[i].mark = '';
 		}
-		DOMController.clearBoard();
+		DOMController.clearDOMBoard();
 		let play_again_btn = document.querySelector("#play-again");
 		play_again_btn.style.display = "none";
 		isGameOver = false;
@@ -101,10 +108,10 @@ let GameController = (() => {
 			isGameOver = true;
 			Gameboard.tilesPlaced = 0;
 
-			storeMoves.player1=[0,0,0,0,0,0,0,0];
-			storeMoves.player2=[0,0,0,0,0,0,0,0];
+			checkWinConditions.player1=[0,0,0,0,0,0,0,0];
+			checkWinConditions.player2=[0,0,0,0,0,0,0,0];
 
-			DOMController.signalWinner(winningMark);
+			DOMController.showDOMWinner(winningMark);
 		};
 
 		let tie = function()
@@ -117,10 +124,10 @@ let GameController = (() => {
 			isGameOver = true;
 			Gameboard.tilesPlaced = 0;
 
-			storeMoves.player1=[0,0,0,0,0,0,0,0];
-			storeMoves.player2=[0,0,0,0,0,0,0,0];
+			checkWinConditions.player1=[0,0,0,0,0,0,0,0];
+			checkWinConditions.player2=[0,0,0,0,0,0,0,0];
 
-			DOMController.signalTie();
+			DOMController.showDOMTie();
 		};
 
 		let tile_num = parseInt(index);
@@ -132,10 +139,10 @@ let GameController = (() => {
 
 				if(winConditions[i].includes(tile_num))
 				{
-					storeMoves.player1[i] += 1;
+					checkWinConditions.player1[i] += 1;
 					
 
-					if(storeMoves.player1[i]==3)
+					if(checkWinConditions.player1[i]==3)
 					{
 						won(Gameboard.gameArr[index].mark);
 						break;
@@ -150,9 +157,9 @@ let GameController = (() => {
 			{
 				if(winConditions[i].includes(tile_num))
 				{
-					storeMoves.player2[i] += 1;
+					checkWinConditions.player2[i] += 1;
 					
-					if(storeMoves.player2[i]==3)
+					if(checkWinConditions.player2[i]==3)
 					{
 						won(Gameboard.gameArr[index].mark);
 						break;
@@ -174,7 +181,7 @@ let GameController = (() => {
 		getPlayerTurn,
 		clearBoard,
 		checkforWinner,
-		storeMoves
+		checkWinConditions
 	};
 })();
 
@@ -183,7 +190,7 @@ let DOMController = (() => {
 	let tile_nodelist;
 	let grid_container;
 
-	let renderBoard = () => 
+	let renderDOMBoard = () => 
 	{
 		grid_container = document.querySelector("#grid-container");
 
@@ -205,7 +212,7 @@ let DOMController = (() => {
 		});
 	};
 
-	let updateBoard = (tilePressed) => {
+	let updateDOMBoard = (tilePressed) => {
 		
 		let img = document.createElement('img');
 
@@ -221,7 +228,7 @@ let DOMController = (() => {
 		}
 	};
 
-	let clearBoard = () => {
+	let clearDOMBoard = () => {
 		tile_nodelist.forEach(node=>{
 			if(node.childNodes[0] != null)
 			{
@@ -236,7 +243,7 @@ let DOMController = (() => {
 		}
 	};
 
-	let signalWinner = (winningMark) => {
+	let showDOMWinner = (winningMark) => {
 
 		let winnerHTML = document.createElement("div");
 		let winnerContent;
@@ -257,7 +264,7 @@ let DOMController = (() => {
 
 	};
 
-	let signalTie = () => {
+	let showDOMTie = () => {
 
 		let tieHTML = document.createElement("div");
 		let tieContent;
@@ -275,7 +282,7 @@ let DOMController = (() => {
 
 	return {
 		
-		renderBoard,updateBoard, clearBoard,signalWinner, signalTie
+		renderDOMBoard,updateDOMBoard, clearDOMBoard,showDOMWinner, showDOMTie
 
 	};
 })();
