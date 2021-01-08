@@ -19,11 +19,89 @@ let Gameboard = (() => {
 })();
 
 let minimax = ((node, depth, maximizingPLayer) => {
-	if(depth == 0 || node)
+	//if(depth == 0 || node)
+	//depth is 8
 	{
 
 	}
 });
+
+let TreeNode = () => {
+
+	let nodeName = '';
+	let parentNode = null;
+	let arrayofChildNodes = [];
+
+	return {nodeName,parentNode,arrayofChildNodes};
+};
+
+
+//tree of all tic-tac-toe possibilities
+
+let tree = (() =>
+{
+	let root = TreeNode();
+	let childNodeCounter = 0;
+	root.nodeName = 'root';
+	let depth = 3;
+
+//first layer of the tree (blank board)
+	for (let i = 0; i<1; i++)
+	{
+		let alreadyAdded = [];
+
+		let node = TreeNode();
+		node.parentNode=root; 
+		node.nodeName=i; 
+		root.arrayofChildNodes.push(node);
+		alreadyAdded.push(i);
+
+		addNodes(node,alreadyAdded,depth-1);
+
+	}
+
+	function addNodes (newParent,alreadyAdded,depth){
+
+		for(let i = 0;i<3;i++)
+		{	
+			console.log(alreadyAdded);
+			if(!alreadyAdded.includes(i))
+			{
+				let node = TreeNode();
+				node.parentNode=newParent; 
+				node.nodeName=i;
+				newParent.arrayofChildNodes.push(node);
+				alreadyAdded.push(i);
+
+				addNodes(node,alreadyAdded,depth-1);
+			}
+			else
+			{
+				console.log(i + "alreadyadded");
+			}
+		}
+	};
+
+	/*
+	let addNodes = (newParent,alreadyAdded,depth) => {
+
+		for(let i = 0;i<3;i++)
+		{
+			if(!alreadyAdded.includes(i))
+			{
+				let node = TreeNode();
+				node.parentNode=newParent; 
+				node.nodeName=i;
+				newParent.arrayofChildNodes.push(node);
+				alreadyAdded.push(i);
+
+				addNodes(node,alreadyAdded,depth-1);
+			}
+		}
+	};*/
+
+	return{root,addNodes};
+})();
 
 
 let GameController = (() => {
@@ -47,6 +125,7 @@ let GameController = (() => {
 
 	let isPlayerOneTurn = true;
 	let isGameOver = false;
+	let isAIselected = false;
 
 	let initGame = () => {
 
@@ -64,6 +143,16 @@ let GameController = (() => {
 			if (isPlayerOneTurn)
 			{
 				Gameboard.gameArr[index].mark = "x";
+
+				if(isAIselected)
+				{
+					isPlayerOneTurn = !isPlayerOneTurn;
+
+					let selected_index = getComputersMove();
+					console.log(selected_index);
+					//Gameboard.gameArr[selected_index].mark = "x";
+				}
+
 			}
 			else
 			{
@@ -75,6 +164,13 @@ let GameController = (() => {
 			checkforWinner(isPlayerOneTurn,index); 
 			isPlayerOneTurn = !isPlayerOneTurn;
 		}
+	};
+
+	let getComputersMove = () => {
+		let selected_index; 
+
+
+		//return selected_index;
 	};
 
 	let getPlayerTurn = () =>
@@ -290,7 +386,8 @@ let DOMController = (() => {
 
 function theDomHasLoaded(e) {
 	
-	GameController.initGame();
+	//GameController.initGame();
+	tree;
 
 }
 
