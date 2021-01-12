@@ -18,72 +18,117 @@ let Gameboard = (() => {
 
 })();
 
-let minimax = ((node, depth, maximizingPLayer) => {
-	//if(depth == 0 || node)
-	//depth is 8
+function bestMove(){
+
+	let bestScore = -Infinity; 
+	let bestMove;
+	for (let i=0;i<9;i++)
+	{
+		if(Gameboard.gameArr[i].mark == '')
+		{
+			Gameboard.gameArr[i].mark = 'o';
+			let score = minimax(i,true);
+			Gameboard.gameArr[i].mark = '';
+			if (score>bestScore)
+			{
+				bestScore = score;
+				bestMove = i;
+			}
+		}
+	}
+
+	return bestMove;
+}
+
+let minimax = (move,depth,isMaximizing) => {
+	GameController.checkforWinner(move,!isMaximizing);	
+
+	if()
 	{
 
 	}
-});
+};
 
 let TreeNode = () => {
 
-	let nodeName = '';
+	let nodeValue = '';
 	let parentNode = null;
 	let arrayofChildNodes = [];
+	let valuesofParents = [];
 
-	return {nodeName,parentNode,arrayofChildNodes};
+	return {nodeValue,parentNode,arrayofChildNodes,valuesofParents};
 };
 
 
 //tree of all tic-tac-toe possibilities
 
-let tree = (() =>
-{
+let Tree = (playerInput) => {
+
+	let totalNodeCounter = 0;
+	let depth = 9;
+
 	let root = TreeNode();
-	let childNodeCounter = 0;
-	root.nodeName = 'root';
-	let depth = 3;
+	root.nodeValue=playerInput; 
+
+	totalNodeCounter =+ 1;
 
 //first layer of the tree (blank board)
-	for (let i = 0; i<1; i++)
+	for (let i = 0; i<depth; i++)
 	{
-		let alreadyAdded = [];
+		if(i != root.nodeValue)
+		{
+			let node = TreeNode();
+			node.parentNode=root; 
+			node.nodeValue=i; 
+			root.arrayofChildNodes.push(node);
+			node.valuesofParents.push(root.nodeValue);
 
-		let node = TreeNode();
-		node.parentNode=root; 
-		node.nodeName=i; 
-		root.arrayofChildNodes.push(node);
-		alreadyAdded.push(i);
+			totalNodeCounter =+ 1;
 
-		addNodes(node,alreadyAdded,depth-1);
+			buildTree(node);
+		}
 
 	}
 
-	function addNodes (newParent,alreadyAdded,depth){
+	//console.log(totalNodeCounter);
 
-		for(let i = 0;i<3;i++)
+	function buildTree (newParent){
+
+		for(let i = 0;i<depth;i++)
 		{	
-			console.log(alreadyAdded);
-			if(!alreadyAdded.includes(i))
+		
+			if(!newParent.valuesofParents.includes(i) && (i != newParent.nodeValue))
 			{
 				let node = TreeNode();
 				node.parentNode=newParent; 
-				node.nodeName=i;
+				node.nodeValue=i;
 				newParent.arrayofChildNodes.push(node);
-				alreadyAdded.push(i);
 
-				addNodes(node,alreadyAdded,depth-1);
-			}
-			else
-			{
-				console.log(i + "alreadyadded");
+				node.valuesofParents = newParent.valuesofParents.concat(newParent.nodeValue);
+
+				totalNodeCounter =+ 1;
+
+				buildTree(node);
 			}
 		}
 	};
 
+	function traverseTree(playerInput){
+
+	};	
+
+	function displayTree()
+	{
+		/*
+		let displayString = '';
+		tree.root.arrayofChildNodes.forEach((node) => {
+
+		});
+
+		return displayString;*/
+	};
 	/*
-	let addNodes = (newParent,alreadyAdded,depth) => {
+	let buildTree = (newParent,alreadyAdded,depth) => {
 
 		for(let i = 0;i<3;i++)
 		{
@@ -91,17 +136,17 @@ let tree = (() =>
 			{
 				let node = TreeNode();
 				node.parentNode=newParent; 
-				node.nodeName=i;
+				node.nodeValue=i;
 				newParent.arrayofChildNodes.push(node);
 				alreadyAdded.push(i);
 
-				addNodes(node,alreadyAdded,depth-1);
+				buildTree(node,alreadyAdded,depth-1);
 			}
 		}
 	};*/
 
-	return{root,addNodes};
-})();
+	return{root,buildTree};
+};
 
 
 let GameController = (() => {
@@ -125,7 +170,7 @@ let GameController = (() => {
 
 	let isPlayerOneTurn = true;
 	let isGameOver = false;
-	let isAIselected = false;
+	let isAIselected = true;
 
 	let initGame = () => {
 
@@ -136,41 +181,63 @@ let GameController = (() => {
 
 	let updategameArr = (tilePressed) => {
 
-		let index = tilePressed.getAttribute("id");
+		let num = tilePressed.getAttribute("id").indexOf("-");
+		let tile_index = tilePressed.getAttribute("id").substring(num+1);
 
-		if(Gameboard.gameArr[index].mark == '' && (!isGameOver))
+		if(Gameboard.gameArr[tile_index].mark == '' && (!isGameOver))
 		{
-			if (isPlayerOneTurn)
+			if (isPlayerOneTurn && isAIselected)
 			{
-				Gameboard.gameArr[index].mark = "x";
+				//player 1 
+				Gameboard.gameArr[tile_index].mark = "x";
+				Gameboard.tilesPlaced += 1;
+				console.log(tilePressed);
+				DOMController.updateDOMBoard(tilePressed);
+				checkforWinner(isPlayerOneTurn,tile_index); 
+				isPlayerOneTurn = false;
 
-				if(isAIselected)
-				{
-					isPlayerOneTurn = !isPlayerOneTurn;
+				//AI's move
+				let selected_index = bestMove();
+				console.log(selected_index);
 
-					let selected_index = getComputersMove();
-					console.log(selected_index);
-					//Gameboard.gameArr[selected_index].mark = "x";
-				}
+				Gameboard.gameArr[selected_index].mark = "o";
+				Gameboard.tilesPlaced += 1;
+				let searchStr = selected_index.toString();
+				let selected_tile_element = document.querySelector("#tile-"+selected_index); 
+				console.log(selected_tile_element);
 
+				DOMController.updateDOMBoard(selected_tile_element);
+				checkforWinner(isPlayerOneTurn,selected_index); 
+				isPlayerOneTurn = true;
+			}
+			else if (isPlayerOneTurn)
+			{
+				Gameboard.gameArr[tile_index].mark = "x";
+				Gameboard.tilesPlaced += 1;
+				DOMController.updateDOMBoard(tilePressed);
+				checkforWinner(isPlayerOneTurn,tile_index); 
+				isPlayerOneTurn = false;
 			}
 			else
 			{
-				Gameboard.gameArr[index].mark = "o";
+				Gameboard.gameArr[tile_index].mark = "o";
+				Gameboard.tilesPlaced += 1;
+				DOMController.updateDOMBoard(tilePressed);
+				checkforWinner(isPlayerOneTurn,tile_index); 
+				isPlayerOneTurn = true;
 			}
 
-			Gameboard.tilesPlaced += 1;
-			DOMController.updateDOMBoard(tilePressed);
-			checkforWinner(isPlayerOneTurn,index); 
-			isPlayerOneTurn = !isPlayerOneTurn;
+			
 		}
 	};
 
-	let getComputersMove = () => {
+	let getComputersMove = (tile_pressed_index) => {
+		
+		let tree = Tree(tile_pressed_index);
 		let selected_index; 
 
+		return 1;
 
-		//return selected_index;
 	};
 
 	let getPlayerTurn = () =>
@@ -294,7 +361,7 @@ let DOMController = (() => {
 		{
 			let newDiv = document.createElement("div");
 			newDiv.classList.add('grid-box');
-			newDiv.setAttribute("id",i);
+			newDiv.setAttribute("id","tile-"+i);
 			grid_container.appendChild(newDiv,grid_container);
 		}
 
@@ -326,10 +393,15 @@ let DOMController = (() => {
 
 	let clearDOMBoard = () => {
 		tile_nodelist.forEach(node=>{
-			if(node.childNodes[0] != null)
-			{
-				node.removeChild(node.childNodes[0]);
+			
+			function removeAllChildNodes(parent){
+				while(parent.firstChild)
+				{
+					parent.removeChild(parent.firstChild);
+				}
 			}
+
+			removeAllChildNodes(node);
 		});
 
 		let winnerHTMLRow = document.querySelector("#flex-row-2");
@@ -386,9 +458,8 @@ let DOMController = (() => {
 
 function theDomHasLoaded(e) {
 	
-	//GameController.initGame();
-	tree;
-
+	GameController.initGame();
+	//let test_tree = Tree(0);
 }
 
 document.addEventListener("DOMContentLoaded",theDomHasLoaded,false);
